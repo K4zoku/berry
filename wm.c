@@ -691,7 +691,7 @@ handle_button_press(XEvent *e)
                 last_motion = current_time;
                 state = ev.xbutton.state;
                 LOGP("state: 0x%x", state);
-                state &= ~(XK_Num_Lock|XK_Caps_Lock); // ignore num lock, caps lock mask
+                state &= ~(0x10|0x2); // ignore num lock, caps lock mask
                 LOGP("masked: 0x%x", state);
                 if (state == (unsigned)(conf.move_mask|Button1Mask) || state == Button1Mask) {
                     nx = ocx + (ev.xmotion.x - x);
