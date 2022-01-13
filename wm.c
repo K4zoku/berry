@@ -650,6 +650,7 @@ handle_button_press(XEvent *e)
     struct client *c;
     int x, y, ocx, ocy, nx, ny, nw, nh, di, ocw, och;
     unsigned int dui;
+    unsigned state;
     Window dummy;
     Time current_time, last_motion;
 
@@ -684,14 +685,16 @@ handle_button_press(XEvent *e)
                     continue;
                 }
                 last_motion = current_time;
-                if (ev.xbutton.state == (unsigned)(conf.move_mask|Button1Mask) || ev.xbutton.state == Button1Mask) {
+                state = ev.xbutton.state;
+                state &= ~(0x10 | 0x2); // ignore numlock and caplock mask, idk what the constant name is, I just take it from xorg-xev
+                if (state == (unsigned)(conf.move_mask|Button1Mask) || state == Button1Mask) {
                     nx = ocx + (ev.xmotion.x - x);
                     ny = ocy + (ev.xmotion.y - y);
                     if (conf.edge_lock)
                         client_move_relative(c, nx - c->geom.x, ny - c->geom.y);
                     else
                         client_move_absolute(c, nx, ny);
-                } else if (ev.xbutton.state == (unsigned)(conf.resize_mask|Button1Mask)) {
+                } else if (state == (unsigned)(conf.resize_mask|Button1Mask)) {
                     nw = ev.xmotion.x - x;
                     nh = ev.xmotion.y - y;
                     if (conf.edge_lock)
