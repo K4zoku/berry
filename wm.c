@@ -657,10 +657,12 @@ handle_button_press(XEvent *e)
     XQueryPointer(display, root, &dummy, &dummy, &x, &y, &di, &di, &dui);
     LOGN("Handling button press event");
     c = get_client_from_window(bev->window);
-    if (c == NULL)
+    if (c == NULL) {
+        LOGN("Couldn't get client from window");
         return;
+    }
     if (c != f_client) {
-        switch_ws(c->ws);
+        // switch_ws(c->ws);
         client_manage_focus(c);
     }
     ocx = c->geom.x;
@@ -668,8 +670,10 @@ handle_button_press(XEvent *e)
     ocw = c->geom.width;
     och = c->geom.height;
     last_motion = ev.xmotion.time;
-    if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, move_cursor, CurrentTime) != GrabSuccess)
+    if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, move_cursor, CurrentTime) != GrabSuccess) {
+        LOGN("Couldn't grab cursor");
         return;
+    }
     do {
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
         switch (ev.type) {
@@ -686,7 +690,9 @@ handle_button_press(XEvent *e)
                 }
                 last_motion = current_time;
                 state = ev.xbutton.state;
-                state &= ~(0x10 | 0x2); // ignore numlock and caplock mask, idk what the constant name is, I just take it from xorg-xev
+                LOGP("state: 0x%x", state);
+                state &= ~(XK_Num_Lock|XK_Caps_Lock); // ignore num lock, caps lock mask
+                LOGP("masked: 0x%x", state);
                 if (state == (unsigned)(conf.move_mask|Button1Mask) || state == Button1Mask) {
                     nx = ocx + (ev.xmotion.x - x);
                     ny = ocy + (ev.xmotion.y - y);
@@ -1298,6 +1304,8 @@ client_manage_focus(struct client *c)
             warp_pointer(c);
         ewmh_set_focus(c);
         manage_xsend_icccm(c, wm_atom[WMTakeFocus]);
+        if (c->ws != curr_ws)
+            switch_ws(c->ws);
     } else { //client is null, might happen when switching to a new workspace
              // without any active clients
         LOGN("Giving focus to dummy window");
