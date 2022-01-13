@@ -659,7 +659,6 @@ handle_button_press(XEvent *e)
     if (c == NULL)
         return;
     if (c != f_client) {
-        // switch_ws(c->ws);
         client_manage_focus(c);
     }
     ocx = c->geom.x;
