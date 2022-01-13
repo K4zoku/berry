@@ -662,7 +662,7 @@ handle_button_press(XEvent *e)
         return;
     }
     if (c != f_client) {
-        // switch_ws(c->ws);
+        switch_ws(c->ws);
         client_manage_focus(c);
     }
     ocx = c->geom.x;
@@ -1304,8 +1304,6 @@ client_manage_focus(struct client *c)
             warp_pointer(c);
         ewmh_set_focus(c);
         manage_xsend_icccm(c, wm_atom[WMTakeFocus]);
-        if (c->ws != curr_ws)
-            switch_ws(c->ws);
     } else { //client is null, might happen when switching to a new workspace
              // without any active clients
         LOGN("Giving focus to dummy window");
