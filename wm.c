@@ -650,14 +650,17 @@ handle_button_press(XEvent *e)
     struct client *c;
     int x, y, ocx, ocy, nx, ny, nw, nh, di, ocw, och;
     unsigned int dui;
+    unsigned state;
     Window dummy;
     Time current_time, last_motion;
 
     XQueryPointer(display, root, &dummy, &dummy, &x, &y, &di, &di, &dui);
     LOGN("Handling button press event");
     c = get_client_from_window(bev->window);
-    if (c == NULL)
+    if (c == NULL) {
+        LOGN("Couldn't get client from window");
         return;
+    }
     if (c != f_client) {
         // switch_ws(c->ws);
         client_manage_focus(c);
@@ -667,8 +670,10 @@ handle_button_press(XEvent *e)
     ocw = c->geom.width;
     och = c->geom.height;
     last_motion = ev.xmotion.time;
-    if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, move_cursor, CurrentTime) != GrabSuccess)
+    if (XGrabPointer(display, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, move_cursor, CurrentTime) != GrabSuccess) {
+        LOGN("Couldn't grab cursor");
         return;
+    }
     do {
         XMaskEvent(display, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
         switch (ev.type) {
@@ -684,14 +689,18 @@ handle_button_press(XEvent *e)
                     continue;
                 }
                 last_motion = current_time;
-                if (ev.xbutton.state == (unsigned)(conf.move_mask|Button1Mask) || ev.xbutton.state == Button1Mask) {
+                state = ev.xbutton.state;
+                LOGP("state: 0x%x", state);
+                state &= ~(XK_Num_Lock|XK_Caps_Lock); // ignore num lock, caps lock mask
+                LOGP("masked: 0x%x", state);
+                if (state == (unsigned)(conf.move_mask|Button1Mask) || state == Button1Mask) {
                     nx = ocx + (ev.xmotion.x - x);
                     ny = ocy + (ev.xmotion.y - y);
                     if (conf.edge_lock)
                         client_move_relative(c, nx - c->geom.x, ny - c->geom.y);
                     else
                         client_move_absolute(c, nx, ny);
-                } else if (ev.xbutton.state == (unsigned)(conf.resize_mask|Button1Mask)) {
+                } else if (state == (unsigned)(conf.resize_mask|Button1Mask)) {
                     nw = ev.xmotion.x - x;
                     nh = ev.xmotion.y - y;
                     if (conf.edge_lock)
