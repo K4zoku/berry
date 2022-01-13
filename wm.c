@@ -689,18 +689,14 @@ handle_button_press(XEvent *e)
                     continue;
                 }
                 last_motion = current_time;
-                state = ev.xbutton.state;
-                LOGP("state: 0x%x", state);
-                state &= ~(0x10|0x2); // ignore num lock, caps lock mask
-                LOGP("masked: 0x%x", state);
-                if (state == (unsigned)(conf.move_mask|Button1Mask) || state == Button1Mask) {
+                if (ev.xbutton.state == (unsigned)(conf.move_mask|Button1Mask) || ev.xbutton.state == Button1Mask) {
                     nx = ocx + (ev.xmotion.x - x);
                     ny = ocy + (ev.xmotion.y - y);
                     if (conf.edge_lock)
                         client_move_relative(c, nx - c->geom.x, ny - c->geom.y);
                     else
                         client_move_absolute(c, nx, ny);
-                } else if (state == (unsigned)(conf.resize_mask|Button1Mask)) {
+                } else if (ev.xbutton.state == (unsigned)(conf.resize_mask|Button1Mask)) {
                     nw = ev.xmotion.x - x;
                     nh = ev.xmotion.y - y;
                     if (conf.edge_lock)
